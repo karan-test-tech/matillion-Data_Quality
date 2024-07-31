@@ -1,0 +1,63 @@
+type: "orchestration"
+version: "1.0"
+pipeline:
+  components:
+    Start:
+      type: "start"
+      transitions:
+        unconditional:
+        - "Python Pushdown"
+      parameters:
+        componentName: "Start"
+    Python Pushdown:
+      type: "python-pushdown"
+      parameters:
+        componentName: "Python Pushdown"
+        externalAccessIntegrations:
+        packages:
+        - "pandas"
+        scriptLocation: "Component"
+        pythonScript: "import pandas as pd\n\nsession.use_warehouse(\"COMPUTE_WH\"\
+          )\nsession.use_database(\"DEMO\")\nsession.use_schema(\"PUBLIC\")\n\nqueryresult\
+          \ = session.sql('select * from mock_data').collect()\n\n# Convert to Pandas\
+          \ DataFrame\ndf = pd.DataFrame(queryresult)\n\n# Validation functions\n\
+          # Validate first & last Name\ndef validate_name(name):\n    return (\n \
+          \       pd.notna(name) and \n        3 <= len(name) <= 20 and \n       \
+          \ name.strip() == name and \n        name != '' and \n        name.istitle()\
+          \ and \n    )\n\n# Validate Email'\ndef validate_email(email):\n    parts\
+          \ = email.split('@') if pd.notna(email) and len(email) >= 5 and len(email)\
+          \ <= 40 and email.strip() == email and email != '' else []\n    domain_parts\
+          \ = parts[1].split('.') if len(parts) == 2 and parts[0].isalnum() and '.'\
+          \ in parts[1] else []\n    return (\n        pd.notna(email) and \n    \
+          \    len(email) >= 5 and \n        len(email) <= 40 and \n        email.strip()\
+          \ == email and \n        email != '' and \n        len(parts) == 2 and \n\
+          \        parts[0].isalnum() and \n        len(domain_parts) == 2 and \n\
+          \        domain_parts[0].isalpha() and \n        domain_parts[1].isalpha()\n\
+          \    )\n\n\n# Validate Contact\ndef validate_contact(contact):\n    return\
+          \ (\n        pd.notna(contact) and \n        contact != '' and \n      \
+          \  len(contact) == 12 and \n        contact[3] == '-' and \n        contact[7]\
+          \ == '-' and \n        contact.replace('-', '').isdigit()\n    )\n\n# Validate\
+          \ Address\ndef validate_address(address):\n    if pd.isna(address) or address\
+          \ == '':\n        return False\n    parts = address.split(' ', 1)\n    return\
+          \ parts[0].isdigit() and parts[1].replace(' ', '').isalpha()\n\nvalidations\
+          \ = {\n    'first_name': df['FIRST_NAME'].apply(validate_name),\n    'last_name':\
+          \ df['LAST_NAME'].apply(validate_name),\n    'email': df['EMAIL'].apply(validate_email),\n\
+          \    'contact': df['CONTACT'].apply(validate_contact),\n    'address': df['ADDRESS'].apply(validate_address)\n\
+          }\n\nvalidation_results = pd.DataFrame(validations)\nvalid_data = df[validation_results.all(axis=1)]\n\
+          \n# Print or log validation results\nprint(f'Number of valid records: {len(valid_data)}')\n\
+          print(f'Number of invalid records: {len(df) - len(valid_data)}')\n\nvalid_data_df\
+          \ = session.create_dataframe(valid_data)\nvalid_data_df.write.save_as_table(\"\
+          filtered_mock_data\", mode=\"overwrite\")"
+        scriptTimeout: "360"
+design:
+  components:
+    Start:
+      position:
+        x: -480
+        "y": -90
+      tempMetlId: 1
+    Python Pushdown:
+      position:
+        x: -320
+        "y": -90
+      tempMetlId: 2

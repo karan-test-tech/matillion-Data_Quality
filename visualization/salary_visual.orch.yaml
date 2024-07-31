@@ -1,0 +1,81 @@
+type: "orchestration"
+version: "1.0"
+pipeline:
+  components:
+    Start:
+      type: "start"
+      transitions:
+        unconditional:
+        - "SQL Script"
+      parameters:
+        componentName: "Start"
+    SQL Script:
+      type: "sql-script"
+      transitions:
+        success:
+        - "Python Pushdown"
+      parameters:
+        componentName: "SQL Script"
+        sqlScript: "CREATE OR REPLACE TABLE mock_salary_data AS \r\nSELECT salary\
+          \ \r\nFROM new_mock_data"
+    Python Pushdown:
+      type: "python-pushdown"
+      parameters:
+        componentName: "Python Pushdown"
+        externalAccessIntegrations:
+        packages:
+        - "pandas"
+        - "matplotlib"
+        - "seaborn"
+        - "requests"
+        - "scipy"
+        scriptLocation: "Component"
+        pythonScript: "import pandas as pd\nimport matplotlib.pyplot as plt\nimport\
+          \ seaborn as sns\nimport io\nimport base64\nfrom scipy import stats\n\n\
+          # Set up session (assuming you have the session object available)\nsession.use_warehouse(\"\
+          COMPUTE_WH\")\nsession.use_database(\"DEMO\")\nsession.use_schema(\"PUBLIC\"\
+          )\n\n# Generate the plot\nqueryresult = session.sql('SELECT SALARY FROM\
+          \ mock_salary_data').collect()\ndata = pd.DataFrame(queryresult)\n\nif 'SALARY'\
+          \ in data.columns:\n    plt.figure(figsize=(12, 8))\n    \n    # Plotting\
+          \ histogram with KDE\n    sns.histplot(data['SALARY'], bins=50, kde=True,\
+          \ color='skyblue', stat=\"density\", linewidth=0.5)\n    \n    # Adding\
+          \ a grid for better readability\n    plt.grid(True, linestyle='--', alpha=0.6)\n\
+          \    \n    # Adding a title and labels with more details\n    plt.title('Distribution\
+          \ of Salary', fontsize=16, weight='bold')\n    plt.xlabel('Salary', fontsize=14)\n\
+          \    plt.ylabel('Density', fontsize=14)\n    \n    # Displaying statistical\
+          \ annotations\n    mean = data['SALARY'].mean()\n    median = data['SALARY'].median()\n\
+          \    \n    # Calculate mode and handle possible errors\n    try:\n     \
+          \   mode_result = stats.mode(data['SALARY'])\n        mode = mode_result.mode[0]\
+          \ if len(mode_result.mode) > 0 else None\n    except Exception as e:\n \
+          \       mode = None\n        print(f\"Error calculating mode: {e}\")\n \
+          \   \n    plt.axvline(mean, color='r', linestyle='--', linewidth=1, label=f'Mean:\
+          \ {mean:.2f}')\n    plt.axvline(median, color='g', linestyle='-', linewidth=1,\
+          \ label=f'Median: {median:.2f}')\n    if mode is not None:\n        plt.axvline(mode,\
+          \ color='b', linestyle='-', linewidth=1, label=f'Mode: {mode:.2f}')\n  \
+          \  plt.legend()\n\n    # Save the plot to an in-memory file\n    buffer\
+          \ = io.BytesIO()\n    plt.savefig(buffer, format='png', dpi=300)\n    buffer.seek(0)\n\
+          \    plt.close()\n    print(\"Plot generated and saved to in-memory buffer.\"\
+          )\n    \n    # Convert the plot to a base64 string\n    img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')\n\
+          \    print(\"Base64 Image Data:\")\n    print(img_base64)\n    \n    # Print\
+          \ the HTML img tag for convenience\n    html_img_tag = f'<img src=\"data:image/png;base64,{img_base64}\"\
+          \ alt=\"Salary Distribution Plot\">'\n    print(\"HTML Image Tag:\")\n \
+          \   print(html_img_tag)\nelse:\n    print(\"Column 'SALARY' not found in\
+          \ the DataFrame.\")\n"
+        scriptTimeout: "360"
+design:
+  components:
+    Start:
+      position:
+        x: -1090
+        "y": 0
+      tempMetlId: 1
+    SQL Script:
+      position:
+        x: -970
+        "y": 0
+      tempMetlId: 2
+    Python Pushdown:
+      position:
+        x: -840
+        "y": 0
+      tempMetlId: 3

@@ -1,0 +1,101 @@
+type: "transformation"
+version: "1.0"
+pipeline:
+  components:
+    GEODATA:
+      type: "table-input"
+      parameters:
+        componentName: "GEODATA"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "GEODATA"
+        columnNames:
+        - "ID"
+        - "NAME"
+        - "STATE_ID"
+        - "STATE_CODE"
+        - "STATE_NAME"
+        - "COUNTRY_ID"
+        - "COUNTRY_CODE"
+        - "COUNTRY_NAME"
+        - "WIKIDATAID"
+        timeOffset:
+    US_GEO_DATA:
+      type: "table-input"
+      parameters:
+        componentName: "US_GEO_DATA"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "US_GEO_DATA"
+        columnNames:
+        - "ZIP_CODE"
+        - "CITY"
+        - "STATE_CODE"
+        - "STATE"
+        timeOffset:
+    Join:
+      type: "join"
+      sources:
+      - "US_GEO_DATA"
+      - "GEODATA"
+      parameters:
+        componentName: "Join"
+        mainTable: "GEODATA"
+        mainTableAlias: "gd"
+        joins:
+        - - "US_GEO_DATA"
+          - "us"
+          - "Inner"
+        joinExpressions:
+        - - "\"gd\".\"COUNTRY_NAME\" = 'United States' AND \"us\".\"CITY\" = \"gd\"\
+            .\"NAME\" AND \"us\".\"STATE\" = \"gd\".\"STATE_NAME\""
+          - "gd_Inner_us"
+        columnMappings:
+        - - "gd.ID"
+          - "ID"
+        - - "gd.NAME"
+          - "City"
+        - - "gd.STATE_NAME"
+          - "State"
+    FINAL_GEO_DATA:
+      type: "table-output"
+      sources:
+      - "Join"
+      parameters:
+        componentName: "FINAL_GEO_DATA"
+        warehouse: "[Environment Default]"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "FINAL_GEO_DATA"
+        fixDataTypeMismatches: "No"
+        columnMapping:
+        - - "ID"
+          - "ID"
+        - - "City"
+          - "CITY"
+        - - "State"
+          - "STATE"
+        orderBy:
+        outputMode: "Truncate"
+design:
+  components:
+    GEODATA:
+      position:
+        x: -460
+        "y": -90
+      tempMetlId: 1
+    US_GEO_DATA:
+      position:
+        x: -470
+        "y": 20
+      tempMetlId: 2
+    Join:
+      position:
+        x: -300
+        "y": -40
+      tempMetlId: 3
+    FINAL_GEO_DATA:
+      position:
+        x: -150
+        "y": -40
+      tempMetlId: 4

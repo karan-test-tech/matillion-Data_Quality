@@ -75,6 +75,31 @@ pipeline:
       type: "end-failure"
       parameters:
         componentName: "End Failure"
+  variables:
+    table1_metadata:
+      metadata:
+        type: "GRID"
+        description: ""
+        scope: "COPIED"
+        visibility: "PUBLIC"
+        columns:
+          name:
+            columnType: "TEXT"
+          type:
+            columnType: "TEXT"
+      defaultValue: []
+    table2_metadata:
+      metadata:
+        type: "GRID"
+        description: ""
+        scope: "COPIED"
+        visibility: "PUBLIC"
+        columns:
+          name:
+            columnType: "TEXT"
+          type:
+            columnType: "TEXT"
+      defaultValue: []
 design:
   components:
     Start:
@@ -104,6 +129,6 @@ design:
       tempMetlId: 5
     End Failure:
       position:
-        x: 130
+        x: 150
         "y": 50
       tempMetlId: 6

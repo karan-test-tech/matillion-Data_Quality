@@ -32,12 +32,12 @@ pipeline:
         - "TIME_HOUR"
         - "NAME"
         timeOffset:
-    SQL:
+    accurate_records:
       type: "sql"
       sources:
       - "FLIGHTS_DATA"
       parameters:
-        componentName: "SQL"
+        componentName: "accurate_records"
         query: "WITH RankedData AS (\r\n    SELECT\r\n        *,\r\n        ROW_NUMBER()\
           \ OVER (PARTITION BY ID ORDER BY time_hour) AS RowNum\r\n    FROM \r\n \
           \       flights_data\r\n),\r\nMaxRowNumData AS (\r\n    SELECT\r\n     \
@@ -54,12 +54,12 @@ pipeline:
           \     AND air_time IS NOT NULL\r\n        AND distance IS NOT NULL\r\n \
           \       AND hour IS NOT NULL\r\n        AND minute IS NOT NULL\r\n     \
           \   AND time_hour IS NOT NULL\r\n        AND name IS NOT NULL"
-    SQL 2:
+    inaccurate_records:
       type: "sql"
       sources:
       - "FLIGHTS_DATA"
       parameters:
-        componentName: "SQL 2"
+        componentName: "inaccurate_records"
         query: "WITH RankedData AS (\r\n    SELECT\r\n        *,\r\n        ROW_NUMBER()\
           \ OVER (PARTITION BY ID ORDER BY time_hour) AS RowNum\r\n    FROM \r\n \
           \       flights_data\r\n),\r\nMaxRowNumData AS (\r\n    SELECT\r\n     \
@@ -78,7 +78,7 @@ pipeline:
     PROBLEMATIC_FLIGHTS_DATA:
       type: "table-output"
       sources:
-      - "SQL 2"
+      - "inaccurate_records"
       parameters:
         componentName: "PROBLEMATIC_FLIGHTS_DATA"
         warehouse: "[Environment Default]"
@@ -132,11 +132,11 @@ pipeline:
         - - "MAXROWNUM"
           - "ROW_NUM"
         orderBy:
-        outputMode: "Append"
+        outputMode: "Truncate"
     FLIGHTS_DATA_FILTERED:
       type: "table-output"
       sources:
-      - "SQL"
+      - "accurate_records"
       parameters:
         componentName: "FLIGHTS_DATA_FILTERED"
         warehouse: "[Environment Default]"
@@ -190,7 +190,7 @@ pipeline:
         - - "MAXROWNUM"
           - "ROW_NUM"
         orderBy:
-        outputMode: "Append"
+        outputMode: "Truncate"
 design:
   components:
     FLIGHTS_DATA:
@@ -198,23 +198,23 @@ design:
         x: -380
         "y": -40
       tempMetlId: 1
-    SQL:
+    accurate_records:
       position:
         x: -260
         "y": -80
       tempMetlId: 2
-    SQL 2:
+    inaccurate_records:
       position:
         x: -260
         "y": 20
       tempMetlId: 3
     PROBLEMATIC_FLIGHTS_DATA:
       position:
-        x: -140
+        x: -110
         "y": 20
       tempMetlId: 4
     FLIGHTS_DATA_FILTERED:
       position:
-        x: -150
+        x: -120
         "y": -80
       tempMetlId: 5

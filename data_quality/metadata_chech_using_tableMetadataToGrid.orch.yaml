@@ -6,16 +6,16 @@ pipeline:
       type: "start"
       transitions:
         unconditional:
-        - "Table Metadata To Grid"
+        - "table1_metadata"
       parameters:
         componentName: "Start"
-    Table Metadata To Grid:
+    table1_metadata:
       type: "table-metadata-to-grid"
       transitions:
         success:
-        - "Table Metadata To Grid 2"
+        - "table2_metadata"
       parameters:
-        componentName: "Table Metadata To Grid"
+        componentName: "table1_metadata"
         database: "[Environment Default]"
         schema: "[Environment Default]"
         gridVariable: "table1_metadata"
@@ -23,13 +23,13 @@ pipeline:
         - "Name"
         - "Database Type"
         targetTable: "FLIGHTS_DATA_FILTERED"
-    Table Metadata To Grid 2:
+    table2_metadata:
       type: "table-metadata-to-grid"
       transitions:
         success:
-        - "Python Pushdown"
+        - "metadata_comparison"
       parameters:
-        componentName: "Table Metadata To Grid 2"
+        componentName: "table2_metadata"
         database: "[Environment Default]"
         schema: "[Environment Default]"
         gridVariable: "table2_metadata"
@@ -37,15 +37,13 @@ pipeline:
         - "Name"
         - "Database Type"
         targetTable: "FLIGHTS_DATA"
-    Python Pushdown:
+    metadata_comparison:
       type: "python-pushdown"
       transitions:
-        success:
-        - "Print Variables"
-        failure:
-        - "Print Variables 2"
+        unconditional:
+        - "If"
       parameters:
-        componentName: "Python Pushdown"
+        componentName: "metadata_comparison"
         externalAccessIntegrations:
         packages:
         scriptLocation: "Component"
@@ -54,25 +52,33 @@ pipeline:
               context.updateVariable('test1',1)
           else:
               context.updateVariable('test1',0)
+
+          print('table1\t',table1_metadata, '\ntable2\t', table2_metadata)
         scriptTimeout: "360"
-    Print Variables:
-      type: "print-variables"
+    End Success:
+      type: "end-success"
       parameters:
-        componentName: "Print Variables"
-        variablesToPrint:
-        - - "table1_metadata"
-        - - "table2_metadata"
-        prefixText:
-        includeVariableName: "No"
-    Print Variables 2:
-      type: "print-variables"
+        componentName: "End Success"
+    End Failure:
+      type: "end-failure"
       parameters:
-        componentName: "Print Variables 2"
-        variablesToPrint:
-        - - "table1_metadata"
-        - - "table2_metadata"
-        prefixText:
-        includeVariableName: "No"
+        componentName: "End Failure"
+    If:
+      type: "if"
+      transitions:
+        failure:
+        - "End Failure"
+        "true":
+        - "End Success"
+      parameters:
+        componentName: "If"
+        mode: "Simple"
+        condition:
+        - - "test1"
+          - "Is"
+          - "Equal to"
+          - "1"
+        combineConditions: "And"
   variables:
     table1_metadata:
       metadata:
@@ -102,31 +108,36 @@ design:
   components:
     Start:
       position:
-        x: -260
+        x: -330
         "y": -10
       tempMetlId: 1
-    Table Metadata To Grid:
+    table1_metadata:
       position:
-        x: -140
+        x: -240
         "y": -10
       tempMetlId: 2
-    Table Metadata To Grid 2:
+    table2_metadata:
       position:
-        x: -20
+        x: -120
         "y": -10
       tempMetlId: 3
-    Python Pushdown:
+    metadata_comparison:
       position:
-        x: 100
+        x: 20
         "y": -10
       tempMetlId: 4
-    Print Variables:
+    End Success:
       position:
-        x: 240
+        x: 300
         "y": -50
-      tempMetlId: 5
-    Print Variables 2:
+      tempMetlId: 7
+    End Failure:
       position:
-        x: 250
+        x: 310
         "y": 40
-      tempMetlId: 6
+      tempMetlId: 8
+    If:
+      position:
+        x: 140
+        "y": -10
+      tempMetlId: 9

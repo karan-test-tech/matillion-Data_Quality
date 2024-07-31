@@ -1,0 +1,52 @@
+type: "orchestration"
+version: "1.0"
+pipeline:
+  components:
+    Start:
+      type: "start"
+      transitions:
+        unconditional:
+        - "Python Pushdown"
+      parameters:
+        componentName: "Start"
+    Python Pushdown:
+      type: "python-pushdown"
+      parameters:
+        componentName: "Python Pushdown"
+        externalAccessIntegrations:
+        packages:
+        - "pandas"
+        scriptLocation: "Component"
+        pythonScript: "import pandas as pd\r\n\r\n# Set up session (assuming you have\
+          \ the session object available)\r\nsession.use_warehouse(\"COMPUTE_WH\"\
+          )\r\nsession.use_database(\"DEMO\")\r\nsession.use_schema(\"PUBLIC\")\r\n\
+          \r\n# Query to get data\r\nquery = \"SELECT * FROM std_data\"\r\nqueryresult\
+          \ = session.sql(query).collect()\r\n\r\n# Convert query result to DataFrame\r\
+          \ndata = pd.DataFrame(queryresult)\r\n\r\n# Print the columns for debugging\r\
+          \nprint(\"Columns in DataFrame:\", data.columns)\r\n\r\n# Masking functions\r\
+          \ndef mask_email(email):\r\n    # Mask email by replacing characters with\
+          \ asterisks, keeping the domain intact\r\n    if pd.isnull(email):\r\n \
+          \       return email\r\n    name, domain = email.split('@')\r\n    masked_name\
+          \ = name[0] + \"****\" + name[-1] if len(name) > 2 else \"****\"\r\n   \
+          \ return masked_name + \"@\" + domain\r\n\r\ndef mask_contact(contact):\r\
+          \n    # Mask contact by replacing middle digits with asterisks\r\n    if\
+          \ pd.isnull(contact):\r\n        return contact\r\n    return contact[:2]\
+          \ + \"****\" + contact[-2:]\r\n\r\n# Apply masking\r\ndata['EMAIL'] = data['EMAIL'].apply(mask_email)\r\
+          \ndata['CONTACT'] = data['CONTACT'].apply(mask_contact)\r\n\r\n# Print the\
+          \ masked data for debugging\r\nprint(data.head())\r\n\r\n# Convert masked\
+          \ DataFrame back to Snowflake DataFrame and save as table\r\nvalid_data_df\
+          \ = session.create_dataframe(data)\r\nvalid_data_df.write.save_as_table(\"\
+          std_masked_data\", mode=\"overwrite\")"
+        scriptTimeout: "360"
+design:
+  components:
+    Start:
+      position:
+        x: 0
+        "y": 0
+      tempMetlId: 1
+    Python Pushdown:
+      position:
+        x: 170
+        "y": 0
+      tempMetlId: 2
