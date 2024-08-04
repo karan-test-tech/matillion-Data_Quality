@@ -22,7 +22,7 @@ pipeline:
         gridVariableMapping:
         - "Name"
         - "Database Type"
-        targetTable: "FLIGHTS_DATA_FILTERED"
+        targetTable: "FLIGHTS_DATA"
     table2_metadata:
       type: "table-metadata-to-grid"
       transitions:
@@ -36,7 +36,7 @@ pipeline:
         gridVariableMapping:
         - "Name"
         - "Database Type"
-        targetTable: "FLIGHTS_DATA"
+        targetTable: "FLIGHTS_DATA_FILTERED"
     metadata_comparison:
       type: "python-pushdown"
       transitions:
@@ -87,9 +87,9 @@ pipeline:
         scope: "COPIED"
         visibility: "PUBLIC"
         columns:
-          A:
+          name:
             columnType: "TEXT"
-          B:
+          type:
             columnType: "TEXT"
       defaultValue: []
     table2_metadata:
@@ -108,22 +108,22 @@ design:
   components:
     Start:
       position:
-        x: -330
+        x: -410
         "y": -10
       tempMetlId: 1
     table1_metadata:
       position:
-        x: -240
+        x: -290
         "y": -10
       tempMetlId: 2
     table2_metadata:
       position:
-        x: -120
+        x: -160
         "y": -10
       tempMetlId: 3
     metadata_comparison:
       position:
-        x: 20
+        x: -20
         "y": -10
       tempMetlId: 4
     End Success:
@@ -138,6 +138,6 @@ design:
       tempMetlId: 8
     If:
       position:
-        x: 140
+        x: 100
         "y": -10
       tempMetlId: 9

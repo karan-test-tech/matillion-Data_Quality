@@ -81,7 +81,7 @@ design:
   components:
     GEODATA:
       position:
-        x: -460
+        x: -470
         "y": -90
       tempMetlId: 1
     US_GEO_DATA:

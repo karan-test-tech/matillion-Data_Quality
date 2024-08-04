@@ -31,12 +31,12 @@ pipeline:
           \n        AND last_name = TRIM(last_name)\r\n        AND first_name != ''\
           \ AND last_name != ''\r\n        AND first_name = INITCAP(first_name)\r\n\
           \        AND last_name = INITCAP(last_name)\r\n        AND first_name REGEXP\
-          \ '^[A-Z][a-z]*$'\r\n        AND last_name REGEXP '^[A-Z][a-z]*$'\r\n\r\n\
+          \ '^[A-Z][a-z]+$'\r\n        AND last_name REGEXP '^[A-Z][a-z]+$'\r\n\r\n\
           \        -- Email validations\r\n        AND email IS NOT NULL AND email\
           \ != ''\r\n        AND LENGTH(email) >= 5 AND LENGTH(email) <= 40\r\n  \
           \      AND email = TRIM(email)\r\n        AND email REGEXP '^[A-Za-z][A-Za-z0-9]+@[A-Za-z]+\\\
           .[A-Za-z]+$'\r\n\r\n        -- Contact validations\r\n        AND contact\
-          \ IS NOT NULL AND contact != ''\r\n        AND contact REGEXP '^[0-9]{3}-[0-9]{3}-[0-9]{4}$'\r\
+          \ IS NOT NULL AND contact != ''\r\n        AND contact REGEXP '^[0-9]{3}-[0-9]{3}-[0-9]{4}+$'\r\
           \n\r\n        -- Address validations\r\n        AND address IS NOT NULL\
           \ AND address != ''\r\n        AND address REGEXP '^[0-9]+ [A-Za-z ]+$'\r\
           \n)\r\nSELECT * FROM data_validation\r\n"
